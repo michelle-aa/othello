@@ -10,7 +10,7 @@ Player::Player(Side s) {
     testingMinimax = false;
 
     /*
-     * TODO: Do any initialization you need to do here (setting up the board,
+     * Do any initialization you need to do here (setting up the board,
      * precalculating things, etc.) However, remember that you will only have
      * 30 seconds.
      */
@@ -97,14 +97,6 @@ pair<Move, int> Player::getBestMove (Board *b, Side s, int depth, int lastX, int
         int x = movelist[i].getX();
         int y = movelist[i].getY();
         score = get<1>(getBestMove(tryout, other, depth-1, x, y));
-
-        /*multiplier = getMultiplier(movelist[i].getX(), movelist[i].getY());
-        if (testingMinimax)
-            multiplier = 1;
-
-        if (multiplier < 0 and score < 0)
-            score *= -multiplier;
-        else score *= multiplier;*/
 
         if (score > highest) {
             highest = score;
