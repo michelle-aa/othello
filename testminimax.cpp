@@ -11,12 +11,12 @@ int main(int argc, char *argv[]) {
     // this, but it's provided for convenience.
     char boardData[64] = {
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 
-        ' ', 'b', ' ', ' ', ' ', ' ', ' ', ' ', 
-        'b', 'w', 'b', 'b', 'b', 'b', ' ', ' ', 
-        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 
-        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 
-        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 
+        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+        ' ', 'b', ' ', ' ', ' ', ' ', ' ', ' ',
+        'b', 'w', 'b', 'b', 'b', 'b', ' ', ' ',
+        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+        ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '
     };
     Board *board = new Board();
@@ -27,10 +27,11 @@ int main(int argc, char *argv[]) {
     player->testingMinimax = true;
 
 
-    /** 
-     * TODO: Write code to set your player's internal board state to the 
+    /**
+     * TODO: Write code to set your player's internal board state to the
      * example state.
      */
+    player->board->setBoard(boardData);
 
     // Get player's move and check if it's right.
     Move *move = player->doMove(NULL, 0);

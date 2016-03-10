@@ -25,14 +25,14 @@ Player::Player(Side s) {
 Player::~Player() {
 }
 
-std::vector<Move> Player::getValidMoveList () {
+std::vector<Move> getValidMoveList (Board *b, Side s) {
 
     std::vector<Move> v;
     //iterate through all positions of board TODO improve efficiency? we don't have to iterate though all positions, really... but then the board is small
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Move m(i,j);
-            if (board->checkMove(&m, side)) {
+            if (b->checkMove(&m, s)) {
                 // add to list
                 v.push_back(m);
             }
@@ -43,24 +43,90 @@ std::vector<Move> Player::getValidMoveList () {
 }
 
 int getMultiplier (int x, int y) {
+    if (x < 0)
+        return 1;
+
     if (x == 1 or x == 6)
         if (y == 1 or y == 6)
-            return -2;
+            return -2; // non-edge pieces diagonally adjacent to corners
 
     if (x == 0 or x == 7)
         if (y == 0 or y == 7)
-            return 3;
+            return 3; // corner pieces
         if (y == 1 or y == 6)
-            return -3;
-        return 2;
+            return -3; // edge pieces adjacent to corners
+        return 2; // other edge pieces
 
     if (y == 0 or y == 7)
         if (x == 1 or x == 6)
-            return -3;
-        return 2;
+            return -3; // edge pieces adjacent to corners
+        return 2; // other edge pieces
 
-    return 1;
+    return 1; // all other pieces
 
+}
+
+pair<Move, int> Player::getBestMove (Board *b, Side s, int depth, int lastX, int lastY) {
+    int score;
+    Side other = (s == BLACK) ? WHITE : BLACK;
+    Side enemy = (side == BLACK) ? WHITE : BLACK;
+    std::vector<Move> movelist = getValidMoveList(b, s);
+
+    if (depth == 0 or movelist.size() == 0) {
+        score = b->count(side) - b->count(enemy);
+
+        int multiplier = getMultiplier(lastX, lastY);
+        if (testingMinimax)
+            multiplier = 1;
+
+        if (multiplier < 0 and score < 0)
+            score *= -multiplier;
+        else score *= multiplier;
+
+        Move move(-1,-1);
+        pair<Move, int> p (move, score);
+        return p;
+    }
+
+    int highest = std::numeric_limits<int>::min(), bestH, bestL;
+    int lowest = std::numeric_limits<int>::max();
+
+    for (int i = 0; i < movelist.size(); i++) {
+        Board *tryout = b->copy();
+        tryout->doMove(&movelist[i], s);
+        int x = movelist[i].getX();
+        int y = movelist[i].getY();
+        score = get<1>(getBestMove(tryout, other, depth-1, x, y));
+
+        /*multiplier = getMultiplier(movelist[i].getX(), movelist[i].getY());
+        if (testingMinimax)
+            multiplier = 1;
+
+        if (multiplier < 0 and score < 0)
+            score *= -multiplier;
+        else score *= multiplier;*/
+
+        if (score > highest) {
+            highest = score;
+            bestH = i;
+        }
+
+        if (score < lowest) {
+            lowest = score;
+            bestL = i;
+        }
+
+        delete tryout;
+    }
+
+    if (s == side) {
+        pair<Move, int> p (movelist[bestH], highest);
+        return p;
+    }
+    else {
+        pair<Move, int> p (movelist[bestL], lowest);
+        return p;
+    }
 }
 
 /*
@@ -77,7 +143,7 @@ int getMultiplier (int x, int y) {
  */
 Move * Player::doMove(Move *opponentsMove, int msLeft) {
     /*
-     * TODO: Implement how moves your AI should play here. You should first
+     * Implement how moves your AI should play here. You should first
      * process the opponent's opponents move before calculating your own move
      */
     // timeLeft -= msLeft;
@@ -90,37 +156,21 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
     // TODO include condition for unlimited time or otherwise
     // but for now whatever
 
-    std::vector<Move> movelist = getValidMoveList();
+    std::vector<Move> movelist = getValidMoveList(board, side);
+
     if (movelist.size() == 0)
         return NULL; // no available moves
 
-    int newBoardScore, highest = std::numeric_limits<int>::min();
-    int best, multiplier;
-    for (int i = 0; i < movelist.size(); i++) {
-        Board *tryout = board->copy(); // :S
-        tryout->doMove(&movelist[i], side);
-        newBoardScore = tryout->count(side) - tryout->count(other);
+    Move best = get<0>(getBestMove(board, side, 4, -1, -1));
 
-        multiplier = getMultiplier(movelist[i].getX(), movelist[i].getY());
-
-        if (multiplier < 0 and newBoardScore < 0)
-            newBoardScore *= -multiplier;
-        else newBoardScore *= multiplier;
-
-        if (newBoardScore > highest) {
-            highest = newBoardScore;
-            best = i;
-        }
-
-        delete tryout;
-    }
-
-    //board->doMove(&movelist[best], side);
-
-    int x = movelist[best].getX();
-    int y = movelist[best].getY();
+    int x = best.getX();
+    int y = best.getY();
 
     Move *m = new Move(x,y);
+
+    if (x < 0)
+        return NULL;
+
     board->doMove(m, side);
 
     return m;

@@ -13,14 +13,16 @@ public:
     Player(Side side);
     ~Player();
 
+    Board *board;
+
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
 private:
     Side side;
-    Board *board;
-    std::vector<Move> getValidMoveList();
+    //std::vector<Move> getValidMoveList(Board *b);
+    pair<Move, int> getBestMove (Board *b, Side s, int depth, int x, int y);
 };
 
 #endif
