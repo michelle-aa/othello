@@ -15,8 +15,8 @@ Player::Player(Side s) {
      * 30 seconds.
      */
 
-    this->board = new Board();
-    this->side = s;
+    board = new Board();
+    side = s;
 }
 
 /*
@@ -32,7 +32,7 @@ std::vector<Move> Player::getValidMoveList () {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Move m(i,j);
-            if (board->checkMove(&m, this->side)) {
+            if (board->checkMove(&m, side)) {
                 // add to list
                 v.push_back(m);
             }
@@ -40,6 +40,27 @@ std::vector<Move> Player::getValidMoveList () {
     }
 
     return v;
+}
+
+int getMultiplier (int x, int y) {
+    if (x == 1 or x == 6)
+        if (y == 1 or y == 6)
+            return -2;
+
+    if (x == 0 or x == 7)
+        if (y == 0 or y == 7)
+            return 3;
+        if (y == 1 or y == 6)
+            return -3;
+        return 2;
+
+    if (y == 0 or y == 7)
+        if (x == 1 or x == 6)
+            return -3;
+        return 2;
+
+    return 1;
+
 }
 
 /*
@@ -60,9 +81,9 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
      * process the opponent's opponents move before calculating your own move
      */
     // timeLeft -= msLeft;
+    Side other = (side == BLACK) ? WHITE : BLACK;
 
     if (opponentsMove) { // not null
-        Side other = (side == BLACK) ? WHITE : BLACK;
         board->doMove(opponentsMove, other);
     }
 
@@ -70,17 +91,37 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
     // but for now whatever
 
     std::vector<Move> movelist = getValidMoveList();
-
     if (movelist.size() == 0)
         return NULL; // no available moves
 
-    //for now, play the first move
-    board->doMove(&movelist[0], this->side);
+    int newBoardScore, highest = std::numeric_limits<int>::min();
+    int best, multiplier;
+    for (int i = 0; i < movelist.size(); i++) {
+        Board *tryout = board->copy(); // :S
+        tryout->doMove(&movelist[i], side);
+        newBoardScore = tryout->count(side) - tryout->count(other);
 
-    int x = movelist[0].getX();
-    int y = movelist[0].getY();
+        multiplier = getMultiplier(movelist[i].getX(), movelist[i].getY());
+
+        if (multiplier < 0 and newBoardScore < 0)
+            newBoardScore *= -multiplier;
+        else newBoardScore *= multiplier;
+
+        if (newBoardScore > highest) {
+            highest = newBoardScore;
+            best = i;
+        }
+
+        delete tryout;
+    }
+
+    //board->doMove(&movelist[best], side);
+
+    int x = movelist[best].getX();
+    int y = movelist[best].getY();
 
     Move *m = new Move(x,y);
+    board->doMove(m, side);
 
     return m;
 
