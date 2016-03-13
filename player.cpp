@@ -96,7 +96,7 @@ pair<Move, int> Player::getBestMove (Board *b, Side s, int depth, int lastX, int
         tryout->doMove(&movelist[i], s);
         int x = movelist[i].getX();
         int y = movelist[i].getY();
-        score = get<1>(getBestMove(tryout, other, depth-1, x, y));
+        score = getBestMove(tryout, other, depth-1, x, y).second;
 
         if (score > highest) {
             highest = score;
@@ -153,7 +153,7 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
     if (movelist.size() == 0)
         return NULL; // no available moves
 
-    Move best = get<0>(getBestMove(board, side, 4, -1, -1));
+    Move best = getBestMove(board, side, 4, -1, -1).first;
 
     int x = best.getX();
     int y = best.getY();
