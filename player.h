@@ -5,6 +5,7 @@
 #include <vector>
 #include "common.h"
 #include "board.h"
+#include <limits>
 using namespace std;
 
 class Player {
