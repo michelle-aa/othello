@@ -66,12 +66,21 @@ int getMultiplier (int x, int y) {
 
 }
 
-pair<Move, int> Player::getBestMove (Board *b, Side s, int depth, int lastX, int lastY) {
-    int score;
-    Side other = (s == BLACK) ? WHITE : BLACK;
+pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int lastX, int lastY, int alpha, int beta) {
     Side enemy = (side == BLACK) ? WHITE : BLACK;
-    std::vector<Move> movelist = getValidMoveList(b, s);
+    int score;
+    Side current;
 
+    if (seekingMax)
+        current = side;
+    else // opponent; seeking min
+        current = (side == BLACK) ? WHITE : BLACK;
+
+    Side other = (current == BLACK) ? WHITE : BLACK;
+
+    std::vector<Move> movelist = getValidMoveList(b, current);
+
+    // if at end of tree/no possible moves, return own score
     if (depth == 0 or movelist.size() == 0) {
         score = b->count(side) - b->count(enemy);
 
@@ -88,37 +97,57 @@ pair<Move, int> Player::getBestMove (Board *b, Side s, int depth, int lastX, int
         return p;
     }
 
-    int highest = std::numeric_limits<int>::min(), bestH, bestL;
-    int lowest = std::numeric_limits<int>::max();
+    // otherwise, do a DFS on possible moves
+    int best, bestScore;
 
-    for (int i = 0; i < movelist.size(); i++) {
-        Board *tryout = b->copy();
-        tryout->doMove(&movelist[i], s);
-        int x = movelist[i].getX();
-        int y = movelist[i].getY();
-        score = getBestMove(tryout, other, depth-1, x, y).second;
+    if (seekingMax) {
+        // as maximising player
+        bestScore = std::numeric_limits<int>::min();
 
-        if (score > highest) {
-            highest = score;
-            bestH = i;
+        for (int i = 0; i < movelist.size(); i++) {
+            Board *tryout = b->copy();
+            tryout->doMove(&movelist[i], current);
+            int x = movelist[i].getX();
+            int y = movelist[i].getY();
+            score = getBestMove(tryout, other, depth-1, x, y, alpha, beta).second;
+
+            delete tryout;
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = i;
+                alpha = max(bestScore, alpha);
+            }
+
+            if (alpha > beta)
+                break;
         }
+    } else {
+        // as minimising player
+        bestScore = std::numeric_limits<int>::max();
 
-        if (score < lowest) {
-            lowest = score;
-            bestL = i;
+        for (int i = 0; i < movelist.size(); i++) {
+            Board *tryout = b->copy();
+            tryout->doMove(&movelist[i], current);
+            int x = movelist[i].getX();
+            int y = movelist[i].getY();
+            score = getBestMove(tryout, other, depth-1, x, y, alpha, beta).second;
+
+            delete tryout;
+
+            if (score < bestScore) {
+                bestScore = score;
+                best = i;
+                alpha = min(bestScore, alpha);
+            }
+
+            if (alpha > beta)
+                break;
         }
-
-        delete tryout;
     }
 
-    if (s == side) {
-        pair<Move, int> p (movelist[bestH], highest);
-        return p;
-    }
-    else {
-        pair<Move, int> p (movelist[bestL], lowest);
-        return p;
-    }
+    pair<Move, int> p (movelist[best], bestScore);
+    return p;
 }
 
 /*
@@ -153,7 +182,7 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
     if (movelist.size() == 0)
         return NULL; // no available moves
 
-    Move best = getBestMove(board, side, 4, -1, -1).first;
+    Move best = getBestMove(board, true, 4, -1, -1, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()).first;
 
     int x = best.getX();
     int y = best.getY();

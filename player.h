@@ -6,6 +6,7 @@
 #include "common.h"
 #include "board.h"
 #include <limits>
+#include <algorithm>
 using namespace std;
 
 class Player {
@@ -22,8 +23,7 @@ public:
     bool testingMinimax;
 private:
     Side side;
-    //std::vector<Move> getValidMoveList(Board *b);
-    pair<Move, int> getBestMove (Board *b, Side s, int depth, int x, int y);
+    pair<Move, int> getBestMove (Board *b, bool seekingMax, int depth, int lastX, int lastY, int alpha, int beta);
 };
 
 #endif
