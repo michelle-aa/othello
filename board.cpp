@@ -10,6 +10,22 @@ Board::Board() {
     taken.set(4 + 8 * 4);
     black.set(4 + 8 * 3);
     black.set(3 + 8 * 4);
+
+    available.push_back(2 + 2 * 8);
+    available.push_back(2 + 3 * 8);
+    available.push_back(2 + 4 * 8);
+    available.push_back(2 + 5 * 8);
+
+    available.push_back(3 + 2 * 8);
+    available.push_back(3 + 5 * 8);
+
+    available.push_back(4 + 2 * 8);
+    available.push_back(4 + 5 * 8);
+
+    available.push_back(5 + 2 * 8);
+    available.push_back(5 + 3 * 8);
+    available.push_back(5 + 4 * 8);
+    available.push_back(5 + 5 * 8);
 }
 
 /*
@@ -45,9 +61,9 @@ bool Board::onBoard(int x, int y) {
     return(0 <= x && x < 8 && 0 <= y && y < 8);
 }
 
- 
+
 /*
- * Returns true if the game is finished; false otherwise. The game is finished 
+ * Returns true if the game is finished; false otherwise. The game is finished
  * if neither side has a legal move.
  */
 bool Board::isDone() {
@@ -139,6 +155,17 @@ void Board::doMove(Move *m, Side side) {
         }
     }
     set(side, X, Y);
+
+    for (int i = X-1; i < X+2; i++) {
+        for (int j = Y-1; j < Y+2; j++) {
+            if (taken[i + 8*j])
+                available.remove(i + 8*j);
+            else {
+                if (find(available.begin(), available.end(), i + 8*j) == available.end())
+                    available.push_back(i + 8*j);
+            }
+        }
+    }
 }
 
 /*

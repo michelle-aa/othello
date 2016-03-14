@@ -17,6 +17,7 @@ Player::Player(Side s) {
 
     board = new Board();
     side = s;
+    pieceCount = 0;
 }
 
 /*
@@ -28,8 +29,8 @@ Player::~Player() {
 std::vector<Move> getValidMoveList (Board *b, Side s) {
 
     std::vector<Move> v;
-    //iterate through all positions of board TODO improve efficiency? we don't have to iterate though all positions, really... but then the board is small
-    for (int i = 0; i < 8; i++) {
+
+    /*for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Move m(i,j);
             if (b->checkMove(&m, s)) {
@@ -37,32 +38,92 @@ std::vector<Move> getValidMoveList (Board *b, Side s) {
                 v.push_back(m);
             }
         }
+    }*/
+    int x, y;
+
+    list<int>::iterator it;
+    
+    for (it = b->available.begin(); it != b->available.end(); ++it) {
+        x = *it % 8;
+        y = *it / 8;
+        Move m(x, y);
+
+        if (b->checkMove(&m, s)) {
+            // add to list
+            v.push_back(m);
+        }
     }
 
     return v;
 }
 
-int getMultiplier (int x, int y) {
+int Player::getMultiplier (int x, int y) {
     if (x < 0)
         return 1;
 
-    if (x == 1 or x == 6)
-        if (y == 1 or y == 6)
-            return -2; // non-edge pieces diagonally adjacent to corners
+    // 0-19: opening, 20-40: midgame, >=41: endgame
+    if (pieceCount < 20) {
+        // opening
 
-    if (x == 0 or x == 7)
-        if (y == 0 or y == 7)
-            return 3; // corner pieces
-        if (y == 1 or y == 6)
-            return -3; // edge pieces adjacent to corners
-        return 2; // other edge pieces
-
-    if (y == 0 or y == 7)
         if (x == 1 or x == 6)
-            return -3; // edge pieces adjacent to corners
-        return 2; // other edge pieces
+            if (y == 1 or y == 6)
+                return -2; // non-edge pieces diagonally adjacent to corners
 
-    return 1; // all other pieces
+        if (x == 0 or x == 7)
+            if (y == 0 or y == 7)
+                return 3; // corner pieces
+            if (y == 1 or y == 6)
+                return -3; // edge pieces adjacent to corners
+            return 2; // other edge pieces
+
+        if (y == 0 or y == 7)
+            if (x == 1 or x == 6)
+                return -3; // edge pieces adjacent to corners
+            return 2; // other edge pieces
+
+        return 1; // all other pieces
+
+    } else if (pieceCount > 40) {
+        // endgame
+
+        if (x == 1 or x == 6)
+            if (y == 1 or y == 6)
+                return -2; // non-edge pieces diagonally adjacent to corners
+
+        if (x == 0 or x == 7)
+            if (y == 0 or y == 7)
+                return 2; // corner pieces
+            if (y == 1 or y == 6)
+                return -2; // edge pieces adjacent to corners
+            return 2; // other edge pieces
+
+        if (y == 0 or y == 7)
+            if (x == 1 or x == 6)
+                return -2; // edge pieces adjacent to corners
+            return 2; // other edge pieces
+
+        return 1; // all other pieces
+    } else {
+        // midgame
+
+        if (x == 1 or x == 6)
+            if (y == 1 or y == 6)
+                return -2; // non-edge pieces diagonally adjacent to corners
+
+        if (x == 0 or x == 7)
+            if (y == 0 or y == 7)
+                return 3; // corner pieces
+            if (y == 1 or y == 6)
+                return -3; // edge pieces adjacent to corners
+            return 2; // other edge pieces
+
+        if (y == 0 or y == 7)
+            if (x == 1 or x == 6)
+                return -3; // edge pieces adjacent to corners
+            return 2; // other edge pieces
+
+        return 1; // all other pieces
+    }
 
 }
 
@@ -98,7 +159,7 @@ pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int l
     }
 
     // otherwise, do a DFS on possible moves
-    int best, bestScore;
+    int best = 0, bestScore;
 
     if (seekingMax) {
         // as maximising player
@@ -138,7 +199,7 @@ pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int l
             if (score < bestScore) {
                 bestScore = score;
                 best = i;
-                alpha = min(bestScore, alpha);
+                beta = min(bestScore, alpha);
             }
 
             if (alpha > beta)
@@ -172,17 +233,18 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
 
     if (opponentsMove) { // not null
         board->doMove(opponentsMove, other);
+        pieceCount++;
     }
 
     // TODO include condition for unlimited time or otherwise
     // but for now whatever
 
-    std::vector<Move> movelist = getValidMoveList(board, side);
+    //std::vector<Move> movelist = getValidMoveList(board, side);
 
-    if (movelist.size() == 0)
-        return NULL; // no available moves
+    //if (movelist.size() == 0)
+    //    return NULL; // no available moves
 
-    Move best = getBestMove(board, true, 4, -1, -1, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()).first;
+    Move best = getBestMove(board, true, 6, -1, -1, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()).first;
 
     int x = best.getX();
     int y = best.getY();
@@ -193,6 +255,7 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
         return NULL;
 
     board->doMove(m, side);
+    pieceCount++;
 
     return m;
 
