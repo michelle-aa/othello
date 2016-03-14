@@ -157,7 +157,9 @@ void Board::doMove(Move *m, Side side) {
     set(side, X, Y);
 
     for (int i = X-1; i < X+2; i++) {
+        if (i < 0 or i > 7) continue;
         for (int j = Y-1; j < Y+2; j++) {
+            if (j < 0 or j > 7) continue;
             if (taken[i + 8*j])
                 available.remove(i + 8*j);
             else {

@@ -30,19 +30,10 @@ std::vector<Move> getValidMoveList (Board *b, Side s) {
 
     std::vector<Move> v;
 
-    /*for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            Move m(i,j);
-            if (b->checkMove(&m, s)) {
-                // add to list
-                v.push_back(m);
-            }
-        }
-    }*/
     int x, y;
 
     list<int>::iterator it;
-    
+
     for (it = b->available.begin(); it != b->available.end(); ++it) {
         x = *it % 8;
         y = *it / 8;
@@ -238,11 +229,6 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
 
     // TODO include condition for unlimited time or otherwise
     // but for now whatever
-
-    //std::vector<Move> movelist = getValidMoveList(board, side);
-
-    //if (movelist.size() == 0)
-    //    return NULL; // no available moves
 
     Move best = getBestMove(board, true, 6, -1, -1, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()).first;
 
