@@ -48,19 +48,45 @@ std::vector<Move> getValidMoveList (Board *b, Side s) {
     return v;
 }
 
-int Player::getMultiplier (int x, int y) {
+bool isNonCornerEdge (int x, int y) {
+    if (x == 0 or x == 7)
+        return (!(y == 0 or y == 7));
+
+    if (y == 0 or y == 7)
+        return (!(x == 0 or x == 7));
+
+    return false;
+}
+
+int Player::getMultiplier (Board *b, int x, int y) {
     if (x < 0)
         return 1;
 
     int edgeAdjToCorner, corner, edge, adjToCorner, normal;
 
     if (side == WHITE) {
-        if (pieceCount < 40) {
+        if (pieceCount < 35) {
             edgeAdjToCorner = -4;
             corner = 3;
             edge = 1;
             adjToCorner = -3;
             normal = 1;
+
+            if (isNonCornerEdge(x, y)) {
+                if (x == 0) {
+                    if (b->get(WHITE, 0, 0) or b->get(WHITE, 0, 7))
+                        edgeAdjToCorner = 3;
+                } else if (x == 7) {
+                    if (b->get(WHITE, 7, 0) or b->get(WHITE, 7, 7))
+                        edgeAdjToCorner = 3;
+                } else if (y == 0) {
+                    if (b->get(WHITE, 0, 0) or b->get(WHITE, 7, 0))
+                        edgeAdjToCorner = 3;
+                } else if (y == 7) {
+                    if (b->get(WHITE, 0, 7) or b->get(WHITE, 7, 7))
+                        edgeAdjToCorner = 3;
+                }
+            }
         } else {
             edgeAdjToCorner = 1;
             corner = 2;
@@ -120,7 +146,7 @@ pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int l
     if (depth == 0 or movelist.size() == 0) {
         score = b->count(side) - b->count(enemy);
 
-        int multiplier = getMultiplier(lastX, lastY);
+        int multiplier = getMultiplier(b, lastX, lastY);
         if (testingMinimax)
             multiplier = 1;
 

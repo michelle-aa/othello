@@ -24,7 +24,7 @@ public:
 private:
     Side side;
     pair<Move, int> getBestMove (Board *b, bool seekingMax, int depth, int lastX, int lastY, int alpha, int beta);
-    int getMultiplier (int x, int y);
+    int getMultiplier (Board *b, int x, int y);
 };
 
 #endif
