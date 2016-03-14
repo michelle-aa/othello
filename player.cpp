@@ -27,7 +27,7 @@ Player::~Player() {
 }
 
 std::vector<Move> getValidMoveList (Board *b, Side s) {
-
+// TODO this should really be part of board.cpp
     std::vector<Move> v;
 
     int x, y;
@@ -128,8 +128,6 @@ pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int l
     else // opponent; seeking min
         current = (side == BLACK) ? WHITE : BLACK;
 
-    Side other = (current == BLACK) ? WHITE : BLACK;
-
     std::vector<Move> movelist = getValidMoveList(b, current);
 
     // if at end of tree/no possible moves, return own score
@@ -161,7 +159,7 @@ pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int l
             tryout->doMove(&movelist[i], current);
             int x = movelist[i].getX();
             int y = movelist[i].getY();
-            score = getBestMove(tryout, other, depth-1, x, y, alpha, beta).second;
+            score = getBestMove(tryout, !seekingMax, depth-1, x, y, alpha, beta).second;
 
             delete tryout;
 
@@ -183,14 +181,14 @@ pair<Move, int> Player::getBestMove (Board *b, bool seekingMax, int depth, int l
             tryout->doMove(&movelist[i], current);
             int x = movelist[i].getX();
             int y = movelist[i].getY();
-            score = getBestMove(tryout, other, depth-1, x, y, alpha, beta).second;
+            score = getBestMove(tryout, !seekingMax, depth-1, x, y, alpha, beta).second;
 
             delete tryout;
 
             if (score < bestScore) {
                 bestScore = score;
                 best = i;
-                beta = min(bestScore, alpha);
+                beta = min(bestScore, beta);
             }
 
             if (alpha > beta)
@@ -230,7 +228,7 @@ Move * Player::doMove(Move *opponentsMove, int msLeft) {
     // TODO include condition for unlimited time or otherwise
     // but for now whatever
 
-    Move best = getBestMove(board, true, 6, -1, -1, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()).first;
+    Move best = getBestMove(board, true, 7, -1, -1, std::numeric_limits<int>::min(), std::numeric_limits<int>::max()).first;
 
     int x = best.getX();
     int y = best.getY();
