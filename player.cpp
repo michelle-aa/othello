@@ -52,69 +52,55 @@ int Player::getMultiplier (int x, int y) {
     if (x < 0)
         return 1;
 
-    // 0-19: opening, 20-40: midgame, >=41: endgame
-    if (pieceCount < 20) {
-        // opening
+    int edgeAdjToCorner, corner, edge, adjToCorner, normal;
 
-        if (x == 1 or x == 6)
-            if (y == 1 or y == 6)
-                return -2; // non-edge pieces diagonally adjacent to corners
-
-        if (x == 0 or x == 7)
-            if (y == 0 or y == 7)
-                return 3; // corner pieces
-            if (y == 1 or y == 6)
-                return -3; // edge pieces adjacent to corners
-            return 2; // other edge pieces
-
-        if (y == 0 or y == 7)
-            if (x == 1 or x == 6)
-                return -3; // edge pieces adjacent to corners
-            return 2; // other edge pieces
-
-        return 1; // all other pieces
-
-    } else if (pieceCount > 40) {
-        // endgame
-
-        if (x == 1 or x == 6)
-            if (y == 1 or y == 6)
-                return -2; // non-edge pieces diagonally adjacent to corners
-
-        if (x == 0 or x == 7)
-            if (y == 0 or y == 7)
-                return 2; // corner pieces
-            if (y == 1 or y == 6)
-                return -2; // edge pieces adjacent to corners
-            return 2; // other edge pieces
-
-        if (y == 0 or y == 7)
-            if (x == 1 or x == 6)
-                return -2; // edge pieces adjacent to corners
-            return 2; // other edge pieces
-
-        return 1; // all other pieces
-    } else {
-        // midgame
-
-        if (x == 1 or x == 6)
-            if (y == 1 or y == 6)
-                return -2; // non-edge pieces diagonally adjacent to corners
-
-        if (x == 0 or x == 7)
-            if (y == 0 or y == 7)
-                return 3; // corner pieces
-            if (y == 1 or y == 6)
-                return -3; // edge pieces adjacent to corners
-            return 2; // other edge pieces
-
-        if (y == 0 or y == 7)
-            if (x == 1 or x == 6)
-                return -3; // edge pieces adjacent to corners
-            return 2; // other edge pieces
-
-        return 1; // all other pieces
+    if (side == WHITE) {
+        if (pieceCount < 40) {
+            edgeAdjToCorner = -4;
+            corner = 3;
+            edge = 1;
+            adjToCorner = -3;
+            normal = 1;
+        } else {
+            edgeAdjToCorner = 1;
+            corner = 2;
+            edge = 3;
+            adjToCorner = 1;
+            normal = 1;
+        }
+    } else { // BLACK
+        if (pieceCount < 40) {
+            edgeAdjToCorner = -3;
+            corner = 3;
+            edge = 2;
+            adjToCorner = -3;
+            normal = 1;
+        } else {
+            edgeAdjToCorner = 1;
+            corner = 2;
+            edge = 2;
+            adjToCorner = 1;
+            normal = 1;
+        }
     }
+
+    if (x == 1 or x == 6)
+        if (y == 1 or y == 6)
+            return adjToCorner; // non-edge pieces diagonally adjacent to corners
+
+    if (x == 0 or x == 7)
+        if (y == 0 or y == 7)
+            return corner; // corner pieces
+        if (y == 1 or y == 6)
+            return edgeAdjToCorner; // edge pieces adjacent to corners
+        return edge; // other edge pieces
+
+    if (y == 0 or y == 7)
+        if (x == 1 or x == 6)
+            return edgeAdjToCorner; // edge pieces adjacent to corners
+        return edge; // other edge pieces
+
+    return normal; // all other pieces
 
 }
 
